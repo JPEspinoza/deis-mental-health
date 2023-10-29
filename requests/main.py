@@ -12,12 +12,12 @@ headers = {
 session = requests.Session()
 session.headers.update(headers)
 
-# get csrf token
+### get csrf token
 url = "https://informesdeis.minsal.cl/SASVisualAnalytics/"
 response = session.get(url)
 csrf_token = session.cookies.get_dict()["X-Uaa-Csrf"]
 
-# login
+### login
 url = "https://informesdeis.minsal.cl/SASLogon/login.do"
 payload = {
     "X-Uaa-Csrf": csrf_token, # the form has a hidden input with the csrf token filled by js
@@ -28,57 +28,40 @@ payload = {
 response = session.post(url, data=payload)
 
 #### get an executor
-#### this is horribly opaque and i have no idea what the backend thinks about poking all these things
-#### basically a ritual
-# fail (449)
+# this is an opaque ritual
+# I don't understand where the state comes from, i think the frontend generates a random one, so just putting a random string works
+
 url = 'https://informesdeis.minsal.cl/reportData/executors'
-response = session.post(url)
-print(response.text)
+session.post(url)
 
-# run authorize (449)
-url = 'https://informesdeis.minsal.cl/SASLogon/oauth/authorize?client_id=sas.reportData&redirect_uri=/reportData/executors?sso_retry%3DPOST&response_type=code&state=75f9b88f'
-response = session.get(url)
-print(response.text)
+url = 'https://informesdeis.minsal.cl/SASLogon/oauth/authorize?client_id=sas.reportData&redirect_uri=/reportData/executors?sso_retry=POST&response_type=code&state=7bb636be'
+session.get(url)
 
-# fail again
-url = 'https://informesdeis.minsal.cl/reportData/executors?sso_retry=POST&code=2y8bwCYv5k&state=75f9b88f'
-response = session.get(url)
-print(response.text)
+url = 'https://informesdeis.minsal.cl/reportData/executors?sso_retry=POST&code=tV6RLE79Dd&state=7bb636be'
+session.get(url)
 
-# succeed (200)
 url = 'https://informesdeis.minsal.cl/reportData/executors'
+response = session.get(url)
+
+# extract the executorid
+response = json.loads(response.text)
+executorid = response["items"][0]["id"]
+
+### try to get the data by force using the acquired executorid
+url = f'https://informesdeis.minsal.cl/reportData/jobs?indexStrings=true&embeddedData=true&executorId={executorid}&wait=30&jobId={executorid}_c0&sequence=1'
 response = session.post(url)
+
+print(executorid)
 print(response.text)
+
 
 exit()
 
-
-# get the dashboard first page 
+### get the dashboard first page 
 url = 'https://informesdeis.minsal.cl/reports/reports/ad0c03ad-ee7a-4da4-bcc7-73d6e12920cf/content'
 header = {
     "Accept": "application/vnd.sas.report.content+json" # force json version instead of xml one
 }
 response = session.get(url, headers=header)
 
-# get data definitions
-#####
-
-
-# try to get the data by force
-url = 'https://informesdeis.minsal.cl/reports/reportData/jobs'
-id = str(uuid.uuid4())
-payload = { # this is where it gets comletely incomprehensible
-    "indexString": "true",
-    "embeddedData": "true",
-    "wait": 30,
-    "executorId": id,
-    "jobId": id + "_c1",
-    "sequence": 2,
-    "dataDefinition": "dd374",
-}
-# add payload to url
-url = url + "?" + "&".join([f"{k}={v}" for k,v in payload.items()])
-print(url)
-response = session.post(url)
-
-print(response.text)
+### extract data definitions from response
