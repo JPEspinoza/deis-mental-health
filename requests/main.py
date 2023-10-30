@@ -11,35 +11,11 @@ headers = {
 session = requests.Session()
 session.headers.update(headers)
 
-### get csrf token from the form in the login page
-url = "https://informesdeis.minsal.cl/SASVisualAnalytics/"
-response = session.get(url)
-csrf_token = session.cookies.get_dict()["X-Uaa-Csrf"]
+report_id = "0b3119f0-db06-4f10-a9cd-61092b5790bc"
 
-### login
-url = "https://informesdeis.minsal.cl/SASLogon/login.do"
-payload = {
-    "X-Uaa-Csrf": csrf_token, # the form has a hidden input with the csrf token filled by js
-    "username": "",
-    "password": "",
-    "_eventId": "guest",
-}
-response = session.post(url, data=payload)
+# enter site first to get cookies
+session.get(f"https://informesdeis.minsal.cl/SASVisualAnalytics/?reportUri=%2Freports%2Freports%2F{report_id}&sectionIndex=0&sso_guest=true&reportViewOnly=true&reportContextBar=false&sas-welcome=false")
 
-#### get an executor, the executor is used to get data from the dashboard
-# the website seems to get the executor through a complex process with some authorizes ending on a post
-# I couldn't imitate it, but the get request gets it directly with no nuance, took me a while to figure it out
-url = 'https://informesdeis.minsal.cl/reportData/executors'
-response = session.get(url) 
-
-# extract the executorid
-response = json.loads(response.text)
-executorid = response["items"][0]["id"]
-
-### try to get the data by force using the acquired executorid
-# no idea where the data definition comes from, but it looks like thats all we need
-# if you need to scrape from another dashboard, you can get the data definition from the network tab in the browser
-url = f'https://informesdeis.minsal.cl/reportData/jobs?indexStrings=true&embeddedData=true&executorId={executorid}&wait=30&jobId={executorid}_c0&sequence=1&dataDefinitions=dd34112'
-response = session.get(url)
-
+# download content
+response = session.get(f"https://informesdeis.minsal.cl/reports/reports/{report_id}/content")
 print(response.text)
