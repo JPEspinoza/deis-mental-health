@@ -144,7 +144,7 @@ for region in get_list_items("__select0", "__list2"):
                 # check files in download folder
                 # rename the file to current iteration
                 # move file to the correct folder
-                sleep(1)
+                sleep(2)
                 file = os.listdir("/home/espi/Downloads").pop()
                 os.rename(f"/home/espi/Downloads/{file}", f"data/sexo_{region}_{servicio}_{comuna}_{establecimiento}.xlsx")
 
@@ -152,7 +152,7 @@ for region in get_list_items("__select0", "__list2"):
                 # right click canvas
                 canvas =WebDriverWait(driver, 10).until(
                     expected_conditions.presence_of_element_located(
-                        (By.ID, "__uiview0canvas")
+                        (By.ID, "__uiview1canvas")
                     )
                 )
                 action = ActionChains(driver)
@@ -172,7 +172,7 @@ for region in get_list_items("__select0", "__list2"):
                     )
                 ).click()
 
-                sleep(1)
+                sleep(2)
                 file = os.listdir("/home/espi/Downloads").pop()
                 os.rename(f"/home/espi/Downloads/{file}", f"data/edad_{region}_{servicio}_{comuna}_{establecimiento}.xlsx")
 
