@@ -34,7 +34,16 @@ def get_list_items(button_id, list_id):
 if not os.path.exists("data"):
     os.mkdir("data")
 
-driver = webdriver.Chrome()
+if not os.path.exists("downloads"):
+    os.mkdir("downloads")
+
+downloads_path = current_working_directory = os.getcwd()
+
+chrome_options = webdriver.ChromeOptions()
+prefs = {'download.default_directory' : downloads_path}
+chrome_options.add_experimental_option('prefs', prefs)
+driver = webdriver.Chrome(options=chrome_options)
+
 driver.get(
     "https://informesdeis.minsal.cl/SASVisualAnalytics/?reportUri=%2Freports%2Freports%2F0b3119f0-db06-4f10-a9cd-61092b5790bc&sectionIndex=0&sso_guest=true&reportViewOnly=true&reportContextBar=false&sas-welcome=false"
 )
@@ -116,37 +125,6 @@ for region in get_list_items("__select0", "__list2"):
                         )
                     )
                 ).click()
-
-                ### download the report
-                # right click canvas
-                canvas =WebDriverWait(driver, 10).until(
-                    expected_conditions.presence_of_element_located(
-                        (By.ID, "__uiview0canvas")
-                    )
-                )
-                action = ActionChains(driver)
-                action.context_click(canvas).perform()
-
-                # click button that says "Export data"
-                WebDriverWait(driver, 10).until(
-                    expected_conditions.presence_of_element_located(
-                        (By.XPATH, "//*[contains(text(), 'Export data...')]")
-                    )
-                ).click()
-
-                # download the report by clicking the OK button
-                WebDriverWait(driver, 10).until(
-                    expected_conditions.presence_of_element_located(
-                        (By.XPATH, "//*[contains(text(), 'OK')]")
-                    )
-                ).click()
-
-                # check files in download folder
-                # rename the file to current iteration
-                # move file to the correct folder
-                sleep(2)
-                file = os.listdir("/home/espi/Downloads").pop()
-                os.rename(f"/home/espi/Downloads/{file}", f"data/sexo_{region}_{servicio}_{comuna}_{establecimiento}.xlsx")
 
                 ### download second report
                 # right click canvas
