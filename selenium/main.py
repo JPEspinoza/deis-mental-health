@@ -31,19 +31,29 @@ def get_list_items(button_id, list_id):
 
     return items
 
-if not os.path.exists("data"):
-    os.mkdir("data")
+downloads_path = os.getcwd() + "\downloads"
+data_path = os.getcwd() + "\data"
 
-if not os.path.exists("downloads"):
-    os.mkdir("downloads")
+if not os.path.exists(downloads_path):
+    os.mkdir(downloads_path)
 
-downloads_path = current_working_directory = os.getcwd()
+if not os.path.exists(data_path):
+    os.mkdir(data_path)
+
+# wipe the folders
+downloads = os.listdir(downloads_path)
+for download in downloads:
+    os.unlink(download)
+
+data = os.listdir(data_path)
+for d in data:
+    os.unlink(d)
+
 
 chrome_options = webdriver.ChromeOptions()
 prefs = {'download.default_directory' : downloads_path}
 chrome_options.add_experimental_option('prefs', prefs)
 driver = webdriver.Chrome(options=chrome_options)
-
 driver.get(
     "https://informesdeis.minsal.cl/SASVisualAnalytics/?reportUri=%2Freports%2Freports%2F0b3119f0-db06-4f10-a9cd-61092b5790bc&sectionIndex=0&sso_guest=true&reportViewOnly=true&reportContextBar=false&sas-welcome=false"
 )
@@ -126,7 +136,7 @@ for region in get_list_items("__select0", "__list2"):
                     )
                 ).click()
 
-                ### download second report
+                ### download report
                 # right click canvas
                 canvas =WebDriverWait(driver, 10).until(
                     expected_conditions.presence_of_element_located(
@@ -150,8 +160,11 @@ for region in get_list_items("__select0", "__list2"):
                     )
                 ).click()
 
+                # somehow wait until file is downloaded
                 sleep(2)
-                file = os.listdir("/home/espi/Downloads").pop()
-                os.rename(f"/home/espi/Downloads/{file}", f"data/edad_{region}_{servicio}_{comuna}_{establecimiento}.xlsx")
+
+                # move file, indexed by name
+                file = os.listdir(downloads_path).pop()
+                os.rename(f"{downloads_path}/{file}", f"{data_path}/edad_{region}_{servicio}_{comuna}_{establecimiento}.xlsx")
 
 
